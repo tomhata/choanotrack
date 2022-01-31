@@ -20,7 +20,7 @@ def import_dataframe(path_input: str, start_frame=0, end_frame=-1) -> pd.DataFra
     Returns:
         pd.DataFrame: [description]
     """
-    df = pd.read_csv(path_input)
+    df = pd.read_csv(path_input, index_col=0)
     if end_frame == -1:
         end_frame = len(df)
     df = df.loc[start_frame:end_frame]
@@ -41,6 +41,7 @@ def filter_positions(df: pd.DataFrame, filt_order: int, wn: float) -> pd.DataFra
     b,a = signal.butter(filt_order, wn)
     df.centroid_y_px = signal.filtfilt(b, a, df.centroid_y_px)
     df.centroid_x_px = signal.filtfilt(b, a, df.centroid_x_px)
+    print(df.head())
     df = pixels_to_um(df)
     return df
 
@@ -145,4 +146,4 @@ if __name__ == "__main__":
 
     df = import_dataframe(args.input, start_frame=args.start, end_frame=args.end)
     df = filter_positions(df, args.filter, args.wn)
-    df.to_csv(args.output)
+    df.to_csv(args.output, index_label="frame")

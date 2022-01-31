@@ -75,7 +75,6 @@ def import_set(path_lv: str) -> pd.DataFrame:
     ]
     lv_masks = lvreader.read_set(path_lv)
     df_main = pd.DataFrame(columns=list_properties)
-    df_main.index.name = "frame"
 
     for frame_count, buffer in tqdm(enumerate(lv_masks), total=len(lv_masks)):
         timestamp = np.float64(buffer[0].attributes["AcqTimeSeries"][0:-3]) / 1000000
@@ -93,10 +92,7 @@ def import_set(path_lv: str) -> pd.DataFrame:
                 pd.Series([timestamp, scale], index=["timestamp_s", "scale_um_px"]),
             ]
         )
-
-        # largest_blob.index.name = "frame"
         largest_blob.name = frame_count
-        # df_main = df_main.append(largest_blob)
         df_main = pd.concat([df_main, largest_blob.to_frame().transpose()])
     return df_main
 
@@ -121,4 +117,4 @@ if __name__ == "__main__":
 
     df = import_set(args.input)
     df = pixels_to_um(df)
-    df.to_csv(args.output)
+    df.to_csv(args.output, index_label="frame")
