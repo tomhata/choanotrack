@@ -6,6 +6,7 @@ import imageio as iio
 import numpy as np
 import pandas as pd
 import pathlib
+from tqdm import tqdm
 
 
 def center_colonies(
@@ -13,7 +14,7 @@ def center_colonies(
     path_csv: str,
     path_output: str = "./output/",
     bottom_pad: int = 20,
-    fill: int = 0,
+    fill: int = 255,
 ):
     """Create an image stack, with each image centered around the colony centroid.
 
@@ -22,7 +23,7 @@ def center_colonies(
         path_csv (str): Path to colony data csv
         path_output (str): Path to output directory for image stack. Defaults to "./output/".
         bottom_pad (int, optional): Pad pixels in video not part of image. Defaults to 20.
-        fill (int, optional): Color value to fill empty background. Defaults to 0.
+        fill (int, optional): Color value to fill empty background. Defaults to 255.
     """
     df = pd.read_csv(path_csv, index_col=0)
     reader = iio.get_reader(path_video)
@@ -33,7 +34,7 @@ def center_colonies(
     center_y_frame = int(round(frame_l) / 2)
     pathlib.Path(path_output).mkdir(exist_ok=True)
 
-    for idx, img in enumerate(reader):
+    for idx, img in tqdm(enumerate(reader), total=df.shape[0]):
         if idx in df.index:
             img_cropped = img[:(-bottom_pad), :, :]
             centroid_x = int(round(df.loc[idx]["centroid_x_px"]))
@@ -68,6 +69,8 @@ def center_colonies(
             ] = img_cropped[y_min_img:y_max_img, x_min_img:x_max_img]
             path_img_out = pathlib.PurePath(path_output, f"{idx}.tif")
             iio.imwrite(str(path_img_out), img_centered)
+        if idx >= max(df.index):
+            break
 
 
 if __name__ == "__main__":
@@ -104,7 +107,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "--fill",
         "-f",
-        default=0,
+        default=255,
         help="grayscale value to fill background of centered images",
         required=False,
         type=int,
