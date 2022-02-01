@@ -41,7 +41,6 @@ def filter_positions(df: pd.DataFrame, filt_order: int, wn: float) -> pd.DataFra
     b,a = signal.butter(filt_order, wn)
     df.centroid_y_px = signal.filtfilt(b, a, df.centroid_y_px)
     df.centroid_x_px = signal.filtfilt(b, a, df.centroid_x_px)
-    print(df.head())
     df = pixels_to_um(df)
     return df
 
@@ -147,3 +146,4 @@ if __name__ == "__main__":
     df = import_dataframe(args.input, start_frame=args.start, end_frame=args.end)
     df = filter_positions(df, args.filter, args.wn)
     df.to_csv(args.output, index_label="frame")
+
