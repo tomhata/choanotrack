@@ -38,7 +38,7 @@ def filter_positions(df: pd.DataFrame, filt_order: int, wn: float) -> pd.DataFra
     Returns:
         pd.DataFrame: dataframe with updated positions.
     """
-    b,a = signal.butter(filt_order, wn)
+    b, a = signal.butter(filt_order, wn)
     df.centroid_y_px = signal.filtfilt(b, a, df.centroid_y_px)
     df.centroid_x_px = signal.filtfilt(b, a, df.centroid_x_px)
     df = pixels_to_um(df)
@@ -58,7 +58,7 @@ def pixels_to_um(df: pd.DataFrame) -> pd.DataFrame:
     last_x_um = -1
     last_timestamp = -1
     for index, row in tqdm(df.iterrows(), total=df.shape[0]):
-        df.at[index, "area_um2"] = row.area_px2 * (row.scale_um_px ** 2)
+        df.at[index, "area_um2"] = row.area_px2 * (row.scale_um_px**2)
         df.at[index, "major_axis_length_um"] = (
             row.major_axis_length_px * row.scale_um_px
         )
@@ -112,10 +112,7 @@ if __name__ == "__main__":
         type=int,
     )
     parser.add_argument(
-        "--wn",
-        "-w",
-        help="Butterworth filter critical frequency",
-        type=float
+        "--wn", "-w", help="Butterworth filter critical frequency", type=float
     )
     parser.add_argument(
         "--output",
@@ -146,4 +143,3 @@ if __name__ == "__main__":
     df = import_dataframe(args.input, start_frame=args.start, end_frame=args.end)
     df = filter_positions(df, args.filter, args.wn)
     df.to_csv(args.output, index_label="frame")
-
