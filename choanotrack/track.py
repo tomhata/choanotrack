@@ -112,7 +112,7 @@ if __name__ == "__main__":
         "-o",
         type=str,
         default="./output.csv",
-        help="output path",
+        help="output path. Defaults to ./output.csv",
         required=False,
     )
     args = parser.parse_args()

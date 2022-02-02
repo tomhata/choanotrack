@@ -8,14 +8,18 @@ from scipy import signal
 from tqdm import tqdm
 
 
-def import_dataframe(path_input: str, start_frame=0, end_frame=-1) -> pd.DataFrame:
+def import_dataframe(
+    path_input: str,
+    start_frame: int = 0,
+    end_frame: int = -1
+    ) -> pd.DataFrame:
     """Import csv of colony data. Optionally, limit range with start_frame and end_frame
     parameters.
 
     Args:
-        path_input (str): [description]
-        start_frame (int, optional): [description]. Defaults to 0.
-        end_frame (int, optional): [description]. Defaults to -1.
+        path_input (str): Path to csv
+        start_frame (int, optional): First frame to include. Defaults to 0.
+        end_frame (int, optional): Last frame to include, or -1 to end. Defaults to -1.
 
     Returns:
         pd.DataFrame: [description]
@@ -27,13 +31,17 @@ def import_dataframe(path_input: str, start_frame=0, end_frame=-1) -> pd.DataFra
     return df
 
 
-def filter_positions(df: pd.DataFrame, filt_order: int, wn: float) -> pd.DataFrame:
+def filter_positions(
+    df: pd.DataFrame,
+    filt_order: int = 4,
+    wn: float = 0.12,
+    ) -> pd.DataFrame:
     """Filter position data using Butterworth lowpass filter and filtfilt.
 
     Args:
         df (pd.DataFrame): colony position data imported by |import_dataframe|.
-        filt_order (int): order of filter
-        wn (float): critical frequency
+        filt_order (int, optional): order of filter. Defaults to 4.
+        wn (float, optional): critical frequency. Defaults to 0.12.
 
     Returns:
         pd.DataFrame: dataframe with updated positions.
@@ -102,24 +110,31 @@ if __name__ == "__main__":
     parser.add_argument(
         "--input",
         "-i",
-        help="input path to .csv",
         type=str,
+        help="input path to .csv",
     )
     parser.add_argument(
         "--filter",
         "-f",
-        help="Butterworth filter order",
         type=int,
+        default=4,
+        help="Butterworth filter order. Defaults to 4.",
+        required=False,
     )
     parser.add_argument(
-        "--wn", "-w", help="Butterworth filter critical frequency", type=float
+        "--wn",
+        "-w",
+        type=float,
+        default=0.12,
+        help="Butterworth filter critical frequency. Defaults to 0.12",
+        required=False,
     )
     parser.add_argument(
         "--output",
         "-o",
         type=str,
         default="./output_filtered.csv",
-        help="output path",
+        help="output path. Defaults to ./output_filtered.csv",
         required=False,
     )
     parser.add_argument(
@@ -127,7 +142,7 @@ if __name__ == "__main__":
         "-s",
         type=int,
         default=0,
-        help="starting frame",
+        help="starting frame. Defaults to 0",
         required=False,
     )
     parser.add_argument(
@@ -135,7 +150,7 @@ if __name__ == "__main__":
         "-e",
         type=int,
         default=-1,
-        help="end frame",
+        help="end frame. defaults to -1",
         required=False,
     )
     args = parser.parse_args()

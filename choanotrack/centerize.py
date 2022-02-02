@@ -93,24 +93,25 @@ if __name__ == "__main__":
         "--output",
         "-o",
         default="./output/",
-        help="Path to output directory",
+        help="Path to output directory. Defaults to ./output/",
         type=str,
+        required=False,
     )
     parser.add_argument(
         "--bottom_pad",
         "-b",
         default=20,
-        help="number of pad pixels on bottom of video to remove",
-        required=False,
+        help="number of pad pixels on bottom of video to remove. Defaults to 20",
         type=int,
+        required=False,
     )
     parser.add_argument(
         "--fill",
         "-f",
         default=255,
-        help="grayscale value to fill background of centered images",
-        required=False,
+        help="grayscale value to fill background of centered images. Defaults to 255",
         type=int,
+        required=False,
     )
 
     args = parser.parse_args()
