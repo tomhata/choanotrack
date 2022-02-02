@@ -13,6 +13,17 @@ from tqdm import tqdm
 from process import pixels_to_um
 
 
+# properties to record using blob analysis
+blob_properties = [
+    "area",
+    "bbox",
+    "major_axis_length",
+    "minor_axis_length",
+    "centroid",
+    "eccentricity",
+    "orientation",
+]
+
 # table properties for main dataframe
 list_properties = [
     "timestamp_s",
@@ -43,8 +54,8 @@ list_properties = [
 dict_property_renames = {
     "area": "area_px2",
     "bbox-0": "bbox_y_min_px",
-    "bbox-1": "bbox_y_max_px",
-    "bbox-2": "bbox_x_min_px",
+    "bbox-1": "bbox_x_min_px",
+    "bbox-2": "bbox_y_max_px",
     "bbox-3": "bbox_x_max_px",
     "major_axis_length": "major_axis_length_px",
     "minor_axis_length": "minor_axis_length_px",
@@ -64,15 +75,6 @@ def import_set(path_lv: str) -> pd.DataFrame:
     Returns:
         pd.DataFrame: colony data for all frames
     """
-    blob_properties = [
-        "area",
-        "bbox",
-        "major_axis_length",
-        "minor_axis_length",
-        "centroid",
-        "eccentricity",
-        "orientation",
-    ]
     lv_masks = lvreader.read_set(path_lv)
     df_main = pd.DataFrame(columns=list_properties)
 
