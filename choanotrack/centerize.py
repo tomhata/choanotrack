@@ -6,6 +6,7 @@ import imageio as iio
 import numpy as np
 import pandas as pd
 import pathlib
+import skimage
 from tqdm import tqdm
 
 
@@ -15,6 +16,7 @@ def center_colonies(
     path_output: str = "./output/",
     bottom_pad: int = 20,
     fill: int = 255,
+    rotate :bool = False,
 ):
     """Create an image stack, with each image centered around the colony centroid.
 
@@ -24,6 +26,7 @@ def center_colonies(
         path_output (str): Path to output directory for image stack. Defaults to "./output/".
         bottom_pad (int, optional): Pad pixels in video not part of image. Defaults to 20.
         fill (int, optional): Color value to fill empty background. Defaults to 255.
+        rotate (bool, optional): Rotate image based on colony orientation. Deafults to False.
     """
     df = pd.read_csv(path_csv, index_col=0)
     reader = iio.get_reader(path_video)
@@ -67,6 +70,21 @@ def center_colonies(
             img_centered[
                 y_min_blank:y_max_blank, x_min_blank:x_max_blank
             ] = img_cropped[y_min_img:y_max_img, x_min_img:x_max_img]
+
+            if rotate:
+                if (idx - 1) in df.index:
+                    change_orient_rad = (
+                        df.loc[idx]["orientation_rad"] - df.loc[idx-1]["orientation_rad"]
+                        )
+                    img_centered = np.uint8(skimage.transform.rotate(
+                        img_centered,
+                        -change_orient_rad * 180 / np.pi,
+                        mode="constant",
+                        cval=fill,
+                        preserve_range=True,
+                        )
+                    )
+
             path_img_out = pathlib.PurePath(path_output, f"{idx}.tif")
             iio.imwrite(str(path_img_out), img_centered)
         if idx >= max(df.index):
@@ -113,6 +131,14 @@ if __name__ == "__main__":
         type=int,
         required=False,
     )
+    parser.add_argument(
+        "--rotate",
+        "-r",
+        default=False,
+        help="rotate images based on changes in colony orientation. Defaults to False",
+        type=bool,
+        required=False,
+    )
 
     args = parser.parse_args()
     center_colonies(
@@ -121,4 +147,5 @@ if __name__ == "__main__":
         path_output=args.output,
         bottom_pad=args.bottom_pad,
         fill=args.fill,
+        rotate=args.rotate,
     )

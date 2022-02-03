@@ -49,6 +49,10 @@ def filter_positions(
     b, a = signal.butter(filt_order, wn)
     df.centroid_y_px = signal.filtfilt(b, a, df.centroid_y_px)
     df.centroid_x_px = signal.filtfilt(b, a, df.centroid_x_px)
+    df.major_axis_length_px =  signal.filtfilt(b, a, df.major_axis_length_px)
+    df.minor_axis_length_px =  signal.filtfilt(b, a, df.minor_axis_length_px)
+    df.orientation_rad =  signal.filtfilt(b, a, df.orientation_rad)
+
     df = pixels_to_um(df)
     return df
 

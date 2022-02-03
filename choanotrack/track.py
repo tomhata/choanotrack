@@ -47,7 +47,7 @@ list_properties = [
     "velocity_y_um_s",
     "velocity_x_um_s",
     "velocity_mag_um_s",
-    "velocity_angle_rad",
+    "velocity_angle_rad_s",
 ]
 
 # dict for renaming blob series names
