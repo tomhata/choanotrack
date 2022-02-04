@@ -84,8 +84,6 @@ def center_colonies(
                     preserve_range=True,
                     )
                 )
-                
-
             path_img_out = pathlib.PurePath(path_output, f"{idx}.tif")
             iio.imwrite(str(path_img_out), img_centered)
         if idx >= max(df.index):
@@ -135,8 +133,8 @@ if __name__ == "__main__":
     parser.add_argument(
         "--rotate",
         "-r",
-        default=False,
-        help="rotate images based on changes in colony orientation. Defaults to False",
+        default=True,
+        help="rotate images based on changes in colony orientation. Defaults to True",
         type=bool,
         required=False,
     )
