@@ -39,6 +39,7 @@ list_properties = [
     "scale_um_px",
     "eccentricity",
     "orientation_rad",
+    "rotation_rad_s",
     "area_um2",
     "major_axis_length_um",
     "minor_axis_length_um",
@@ -47,7 +48,7 @@ list_properties = [
     "velocity_y_um_s",
     "velocity_x_um_s",
     "velocity_mag_um_s",
-    "velocity_angle_rad_s",
+    "velocity_angle_rad",
 ]
 
 # dict for renaming blob series names

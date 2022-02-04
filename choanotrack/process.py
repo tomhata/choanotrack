@@ -51,9 +51,11 @@ def filter_positions(
     df.centroid_x_px = signal.filtfilt(b, a, df.centroid_x_px)
     df.major_axis_length_px =  signal.filtfilt(b, a, df.major_axis_length_px)
     df.minor_axis_length_px =  signal.filtfilt(b, a, df.minor_axis_length_px)
-    df.orientation_rad =  signal.filtfilt(b, a, df.orientation_rad)
 
     df = pixels_to_um(df)
+    df.loc[df.index[1]::,"rotation_rad_s"] = signal.filtfilt(
+        b, a, df.loc[df.index[1]::,"rotation_rad_s"]
+        )
     return df
 
 
@@ -66,9 +68,10 @@ def pixels_to_um(df: pd.DataFrame) -> pd.DataFrame:
     Returns:
         pd.DataFrame: dataframe of blob data with additional calculated data
     """
-    last_y_um = -1
-    last_x_um = -1
     last_timestamp = -1
+    last_y_um = 0
+    last_x_um = 0
+    last_orientation = 0
     for index, row in tqdm(df.iterrows(), total=df.shape[0]):
         df.at[index, "area_um2"] = row.area_px2 * (row.scale_um_px**2)
         df.at[index, "major_axis_length_um"] = (
@@ -83,13 +86,21 @@ def pixels_to_um(df: pd.DataFrame) -> pd.DataFrame:
         dt = row.timestamp_s - last_timestamp
         dy = df.centroid_y_um[index] - last_y_um
         dx = df.centroid_x_um[index] - last_x_um
+        dorientation = df.orientation_rad[index] - last_orientation
+        if abs(dorientation) > np.pi/4:
+            if dorientation > 0:
+                dorientation = dorientation - np.pi
+            else:
+                dorientation = np.pi - dorientation
 
-        if index == 0:
+        if last_timestamp == -1:
+            df.at[index, "rotation_rad_s"] = 0
             df.at[index, "velocity_x_um_s"] = 0
             df.at[index, "velocity_y_um_s"] = 0
             df.at[index, "velocity_mag_um_s"] = 0
             df.at[index, "velocity_angle_rad"] = 0
         else:
+            df.at[index, "rotation_rad_s"] = np.float64(dorientation / dt)
             df.at[index, "velocity_x_um_s"] = np.float64(dx / dt)
             df.at[index, "velocity_y_um_s"] = np.float64(dy / dt)
             df.at[index, "velocity_mag_um_s"] = (
@@ -106,6 +117,7 @@ def pixels_to_um(df: pd.DataFrame) -> pd.DataFrame:
         last_timestamp = row.timestamp_s
         last_y_um = row.centroid_y_um
         last_x_um = row.centroid_x_um
+        last_orientation = row.orientation_rad
     return df
 
 
@@ -116,6 +128,14 @@ if __name__ == "__main__":
         "-i",
         type=str,
         help="input path to .csv",
+    )
+    parser.add_argument(
+        "--output",
+        "-o",
+        type=str,
+        default="./output_filtered.csv",
+        help="output path. Defaults to ./output_filtered.csv",
+        required=False,
     )
     parser.add_argument(
         "--filter",
@@ -131,14 +151,6 @@ if __name__ == "__main__":
         type=float,
         default=0.12,
         help="Butterworth filter critical frequency. Defaults to 0.12",
-        required=False,
-    )
-    parser.add_argument(
-        "--output",
-        "-o",
-        type=str,
-        default="./output_filtered.csv",
-        help="output path. Defaults to ./output_filtered.csv",
         required=False,
     )
     parser.add_argument(
