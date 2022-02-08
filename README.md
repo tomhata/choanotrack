@@ -7,12 +7,12 @@ Generalizable for tracking similar microscopic footage.
 
 # Requirements
 * Python ~3.9.6 (lvreader is not compatible with python >= 3.10)
-* lvreader == 1.1.0 (Not available on pypi. Distributed by [LaVision](https://www.lavision.de/en/)). This code was developed with lvreader-1.1.0-cp39-cp39-win_amd64.whl
-* imageio >= 2.14.1
-* numpy >= 1.22.1
-* scikit-image >= 0.19.1
-* pandas >= 1.4.0
-* tqdm
+* lvreader ^1.1.0 (Not available on pypi. Distributed by [LaVision](https://www.lavision.de/en/)). This code was developed with `lvreader-1.1.0-cp39-cp39-win_amd64.whl`
+* imageio ^2.14.1
+* numpy ^1.22.1
+* scikit-image ^0.19.1
+* pandas ^1.4.0
+* tqdm ^4.62.3
 
 # Install
 Use Python poetry for package installation or manually install packages listed in `pyproject.toml`.
