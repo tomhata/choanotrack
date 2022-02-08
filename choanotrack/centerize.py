@@ -16,7 +16,7 @@ def center_colonies(
     path_output: str = "./output/",
     bottom_pad: int = 20,
     fill: int = 255,
-    rotate :bool = False,
+    rotate: bool = False,
 ):
     """Create an image stack, with each image centered around the colony centroid.
 
@@ -76,15 +76,16 @@ def center_colonies(
 
             if rotate:
                 tilt -= df.loc[idx, "rotation_rad_s"] * dt * 180 / np.pi
-                img_centered = np.uint8(skimage.transform.rotate(
-                    img_centered,
-                    tilt,
-                    mode="constant",
-                    cval=fill,
-                    preserve_range=True,
+                img_centered = np.uint8(
+                    skimage.transform.rotate(
+                        img_centered,
+                        tilt,
+                        mode="constant",
+                        cval=fill,
+                        preserve_range=True,
                     )
                 )
-            path_img_out = pathlib.PurePath(path_output, f"{idx}.tif")
+            path_img_out = pathlib.PurePath(path_output, f"{idx:04}.tif")
             iio.imwrite(str(path_img_out), img_centered)
         if idx >= max(df.index):
             break

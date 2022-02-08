@@ -103,10 +103,8 @@ def import_set(path_lv: str) -> pd.DataFrame:
 
 
 def import_dataframe(
-    path_input: str,
-    start_frame: int = 0,
-    end_frame: int = -1
-    ) -> pd.DataFrame:
+    path_input: str, start_frame: int = 0, end_frame: int = -1
+) -> pd.DataFrame:
     """Import csv of colony data. Optionally, limit range with start_frame and end_frame
     parameters.
 
@@ -129,7 +127,7 @@ def filter_positions(
     df: pd.DataFrame,
     filt_order: int = 4,
     wn: float = 0.12,
-    ) -> pd.DataFrame:
+) -> pd.DataFrame:
     """Filter position data using Butterworth lowpass filter and filtfilt.
 
     Args:
@@ -143,13 +141,13 @@ def filter_positions(
     b, a = signal.butter(filt_order, wn)
     df.centroid_y_px = signal.filtfilt(b, a, df.centroid_y_px)
     df.centroid_x_px = signal.filtfilt(b, a, df.centroid_x_px)
-    df.major_axis_length_px =  signal.filtfilt(b, a, df.major_axis_length_px)
-    df.minor_axis_length_px =  signal.filtfilt(b, a, df.minor_axis_length_px)
+    df.major_axis_length_px = signal.filtfilt(b, a, df.major_axis_length_px)
+    df.minor_axis_length_px = signal.filtfilt(b, a, df.minor_axis_length_px)
 
     df = pixels_to_um(df)
-    df.loc[df.index[1]::,"rotation_rad_s"] = signal.filtfilt(
-        b, a, df.loc[df.index[1]::,"rotation_rad_s"]
-        )
+    df.loc[df.index[1]::, "rotation_rad_s"] = signal.filtfilt(
+        b, a, df.loc[df.index[1]::, "rotation_rad_s"]
+    )
     return df
 
 
@@ -181,7 +179,7 @@ def pixels_to_um(df: pd.DataFrame) -> pd.DataFrame:
         dy = df.centroid_y_um[index] - last_y_um
         dx = df.centroid_x_um[index] - last_x_um
         dorientation = df.orientation_rad[index] - last_orientation
-        if abs(dorientation) > np.pi/4:
+        if abs(dorientation) > np.pi / 4:
             if dorientation > 0:
                 dorientation = dorientation - np.pi
             else:
@@ -214,6 +212,7 @@ def pixels_to_um(df: pd.DataFrame) -> pd.DataFrame:
         last_orientation = row.orientation_rad
     return df
 
+
 def write_log(dict_params: OrderedDict, path_out: pathlib.PurePath):
     """Write log as json.
 
@@ -227,13 +226,14 @@ def write_log(dict_params: OrderedDict, path_out: pathlib.PurePath):
         data.update(dict_params)
     else:
         data = dict_params
-        
     with open(path_out, "w+") as fp:
         json.dump(data, fp, indent=4)
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Track colonies using LaVision mask files")
+    parser = argparse.ArgumentParser(
+        description="Track colonies using LaVision mask files"
+    )
     parser.add_argument(
         "--input",
         "-i",
@@ -289,17 +289,22 @@ if __name__ == "__main__":
     fname = path_out.stem
     fname_suffix = path_out.suffix
 
-    path_out_raw = pathlib.PurePath(dir_out, fname + "_raw_" + dt_str + fname_suffix)
+    path_out_raw = pathlib.PurePath(dir_out, fname + "_raw_" + fname_suffix)
     path_out_filt = pathlib.PurePath(
         dir_out,
-        fname + "_filt_start_" + str(args.start) + "_end_" + str(args.end) + "_" + dt_str + fname_suffix
-        )
+        fname
+        + "_filt_start_"
+        + str(args.start)
+        + "_end_"
+        + str(args.end)
+        + fname_suffix,
+    )
     path_log = pathlib.PurePath(dir_out, "choanotrack_log.json")
 
     df = import_set(args.input)
     df = pixels_to_um(df)
     df.to_csv(path_out_raw, index_label="frame")
-    
+
     if args.end == -1:
         end_frame = max(df.index)
     else:
