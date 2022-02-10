@@ -38,7 +38,7 @@ def center_colonies(
     pathlib.Path(path_output).mkdir(exist_ok=True)
 
     dt = df.loc[df.index[1], "timestamp_s"] - df.loc[df.index[0], "timestamp_s"]
-    tilt = 0
+    tilt = -df.loc[df.index[0], "orientation_rad"] * 180 / np.pi
 
     for idx, img in tqdm(enumerate(reader), total=df.shape[0]):
         if idx in df.index:
