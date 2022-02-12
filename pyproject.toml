@@ -21,6 +21,9 @@ flake8 = "^4.0.1"
 black = "^22.1.0"
 jupyter = "^1.0.0"
 
+[tool.poetry.group.extras.dependencies]
+jupyter = "^1.0.0"
+
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
