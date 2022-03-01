@@ -289,7 +289,7 @@ if __name__ == "__main__":
     fname = path_out.stem
     fname_suffix = path_out.suffix
 
-    path_out_raw = pathlib.PurePath(dir_out, fname + "_raw_" + fname_suffix)
+    path_out_raw = pathlib.PurePath(dir_out, fname + "_raw" + fname_suffix)
     path_out_filt = pathlib.PurePath(
         dir_out,
         fname
