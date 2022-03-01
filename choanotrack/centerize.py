@@ -134,9 +134,8 @@ if __name__ == "__main__":
     parser.add_argument(
         "--rotate",
         "-r",
-        default=True,
-        help="rotate images based on changes in colony orientation. Defaults to True",
-        type=bool,
+        action="store_true",
+        help="rotate images based on changes in colony orientation if flag is present.",
         required=False,
     )
 

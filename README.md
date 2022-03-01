@@ -91,8 +91,5 @@ optional arguments:
                         number of pad pixels on bottom of video to remove. Defaults to 20
   --fill FILL, -f FILL  grayscale value to fill background of centered images. Defaults to 255
   --rotate ROTATE, -r ROTATE
-                        rotate images based on changes in colony orientation. Defaults to True
+                        rotate images based on changes in colony orientation if flag is present
 ```
-
-
-# to be continued
