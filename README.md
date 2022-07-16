@@ -93,3 +93,7 @@ optional arguments:
   --rotate ROTATE, -r ROTATE
                         rotate images based on changes in colony orientation if flag is present
 ```
+
+## Known issues
+On windows 11, pyzmq v22.3.0 may generate this error `Bad file descriptor (C:\projects\libzmq\src\epoll.cpp:100)`.
+This path does not exist. A solution is to downgrade to version 19.0. `pip install pyzmq==19.0.2`

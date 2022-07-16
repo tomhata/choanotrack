@@ -143,5 +143,9 @@ cython_debug/
 # test output data
 test
 
-#lvreader whl files
+# lvreader whl files
 lvreader*.whl
+
+# keep output directory but ignore its contents
+output/*
+!output/.gitkeep
