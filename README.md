@@ -35,6 +35,10 @@ optional arguments:
   --start START, -s START
                         starting frame. Defaults to 0
   --end END, -e END     end frame. defaults to -1
+  --x X, -x X           initial colony x position (pixels). defaults to -1 (center)
+  --y Y, -y Y           initial colony y position (pixels). defaults to -1 (center)
+  --min_size MIN_SIZE, -m MIN_SIZE
+                        minimum colony size (pixels). defaults to 100
   --filter FILTER, -f FILTER
                         Butterworth filter order. Defaults to 4.
   --wn WN, -w WN        Butterworth filter critical frequency. Defaults to 0.12

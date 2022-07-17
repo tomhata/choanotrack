@@ -68,38 +68,64 @@ dict_property_renames = {
 }
 
 
-def import_set(path_lv: str) -> pd.DataFrame:
-    """Import lavision mask set. Measure colony as blob for each frame and write to a
-    pandas dataframe.
+def measure_blobs(
+    lv_masks: lvreader.client.set.Set,
+    min_size: int = 100,
+    x: int = -1,
+    y: int = -1,
+) -> pd.DataFrame:
+    """Measure colony as blob from each frame mask and write to a pandas dataframe.
 
     Args:
-        path_lv (str): import path to .set file
+        lv_masks (lvreader.client.set.Set): set of lavision frame masks.
+        min_size (int, optional): minimum blob size in pixels. Defaults to 100.
+        x (int, optional): initial colony x position (pixels). -1=center. Defaults to -1.
+        y (int, optional): initial colony y position (pixels). -1=center. Defaults to -1.
 
     Returns:
         pd.DataFrame: colony data for all frames
     """
-    lv_masks = lvreader.read_set(path_lv)
-    df_main = pd.DataFrame(columns=list_properties)
+    df = pd.DataFrame(columns=list_properties)
+
+    (y_center, x_center) = lv_masks[0].as_masked_array().mask.shape
+    if x == -1:
+        curr_x = round(x_center / 2)
+    else:
+        curr_x = x
+    if y == -1:
+        curr_y = round(y_center / 2)
+    else:
+        curr_y = y
 
     for frame_count, buffer in tqdm(enumerate(lv_masks), total=len(lv_masks)):
         timestamp = np.float64(buffer[0].attributes["AcqTimeSeries"][0:-3]) / 1000000
         scale = buffer[0].scales.x.slope * 1000
         mask = buffer[0].as_masked_array().mask
         blobs = skimage.measure.label(mask)
-        df = pd.DataFrame(
+        df_temp = pd.DataFrame(
             skimage.measure.regionprops_table(blobs, properties=blob_properties)
         )
-        largest_blob = df.sort_values("area", ascending=False).iloc[0]
-        largest_blob = largest_blob.rename(dict_property_renames)
-        largest_blob = pd.concat(
+        df_temp = df_temp[df_temp["area"] > min_size]
+        df_temp.loc[:, "dx_px"] = abs(curr_x - df_temp["centroid-1"])
+        df_temp.loc[:, "dy_px"] = abs(curr_y - df_temp["centroid-0"])
+        df_temp.loc[:, "dist_px"] = (
+            abs(df_temp["dx_px"] ** 2 + df_temp["dy_px"] ** 2) ** 0.5
+        )
+        colony_entry = df_temp.sort_values("dist_px", ascending=True).iloc[0]
+        curr_x = colony_entry["centroid-1"]
+        curr_y = colony_entry["centroid-0"]
+
+        colony_entry = colony_entry.rename(dict_property_renames)
+
+        colony_entry = pd.concat(
             [
-                largest_blob,
+                colony_entry,
                 pd.Series([timestamp, scale], index=["timestamp_s", "scale_um_px"]),
             ]
         )
-        largest_blob.name = frame_count
-        df_main = pd.concat([df_main, largest_blob.to_frame().transpose()])
-    return df_main
+        colony_entry.name = frame_count
+        df = pd.concat([df, colony_entry.to_frame().transpose()])
+    return df
 
 
 def import_dataframe(
@@ -109,9 +135,9 @@ def import_dataframe(
     parameters.
 
     Args:
-        path_input (str): Path to csv
-        start_frame (int, optional): First frame to include. Defaults to 0.
-        end_frame (int, optional): Last frame to include, or -1 to end. Defaults to -1.
+        path_input (str): path to csv
+        start_frame (int, optional): first frame to include. Defaults to 0.
+        end_frame (int, optional): last frame to include, or -1 to end. Defaults to -1.
 
     Returns:
         pd.DataFrame: colony data
@@ -145,8 +171,8 @@ def filter_positions(
     df.minor_axis_length_px = signal.filtfilt(b, a, df.minor_axis_length_px)
 
     df = pixels_to_um(df)
-    df.loc[df.index[1]::, "rotation_rad_s"] = signal.filtfilt(
-        b, a, df.loc[df.index[1]::, "rotation_rad_s"]
+    df.loc[df.index[1] : :, "rotation_rad_s"] = signal.filtfilt(
+        b, a, df.loc[df.index[1] : :, "rotation_rad_s"]
     )
     return df
 
@@ -265,6 +291,30 @@ if __name__ == "__main__":
         required=False,
     )
     parser.add_argument(
+        "--x",
+        "-x",
+        type=int,
+        default=-1,
+        help="initial colony x position (pixels). defaults to -1 (center)",
+        required=False,
+    )
+    parser.add_argument(
+        "--y",
+        "-y",
+        type=int,
+        default=-1,
+        help="initial colony y position (pixels). defaults to -1 (center)",
+        required=False,
+    )
+    parser.add_argument(
+        "--min_size",
+        "-m",
+        type=int,
+        default=100,
+        help="minimum colony size (pixels). defaults to 100",
+        required=False,
+    )
+    parser.add_argument(
         "--filter",
         "-f",
         type=int,
@@ -301,7 +351,8 @@ if __name__ == "__main__":
     )
     path_log = pathlib.PurePath(dir_out, "choanotrack_log.json")
 
-    df = import_set(args.input)
+    lv_masks = lvreader.read_set(args.input)
+    df = measure_blobs(lv_masks, min_size=args.min_size, x=args.x, y=args.y)
     df = pixels_to_um(df)
     df.to_csv(path_out_raw, index_label="frame")
 
@@ -310,7 +361,7 @@ if __name__ == "__main__":
     else:
         end_frame = args.end
 
-    df = df.loc[args.start: end_frame]
+    df = df.loc[args.start : end_frame]
     df = filter_positions(df, args.filter, args.wn)
     df.to_csv(path_out_filt, index_label="frame")
 
