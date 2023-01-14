@@ -10,7 +10,7 @@ import skimage
 from tqdm import tqdm
 
 
-def center_colonies(
+def center_frames(
     path_video: str,
     path_csv: str,
     path_output: str = "./output/",
@@ -32,7 +32,7 @@ def center_colonies(
     reader = iio.get_reader(path_video)
     (frame_w, frame_l) = reader.get_meta_data()["source_size"]
     frame_l = frame_l - bottom_pad
-    img_blank = np.uint8(fill) * np.ones([frame_l, frame_w, 3], dtype=np.uint8)
+    # img_blank = np.uint8(fill) * np.ones([frame_l, frame_w, 3], dtype=np.uint8)
     center_x_frame = int(round(frame_w) / 2)
     center_y_frame = int(round(frame_l) / 2)
     pathlib.Path(path_output).mkdir(exist_ok=True)
@@ -47,48 +47,74 @@ def center_colonies(
             centroid_y = int(round(df.loc[idx]["centroid_y_px"]))
             x_diff = centroid_x - center_x_frame
             y_diff = centroid_y - center_y_frame
-
-            if x_diff > 0:
-                x_min_img = x_diff
-                x_max_img = frame_w
-                x_min_blank = 0
-                x_max_blank = frame_w - x_diff
-            else:
-                x_min_img = 0
-                x_max_img = frame_w + x_diff
-                x_min_blank = -x_diff
-                x_max_blank = frame_w
-            if y_diff > 0:
-                y_min_img = y_diff
-                y_max_img = frame_l
-                y_min_blank = 0
-                y_max_blank = frame_l - y_diff
-            else:
-                y_min_img = 0
-                y_max_img = frame_l + y_diff
-                y_min_blank = -y_diff
-                y_max_blank = frame_l
-
-            img_centered = img_blank.copy()
-            img_centered[
-                y_min_blank:y_max_blank, x_min_blank:x_max_blank
-            ] = img_cropped[y_min_img:y_max_img, x_min_img:x_max_img]
-
-            if rotate:
-                tilt -= df.loc[idx, "rotation_rad_s"] * dt * 180 / np.pi
-                img_centered = np.uint8(
-                    skimage.transform.rotate(
-                        img_centered,
-                        tilt,
-                        mode="constant",
-                        cval=fill,
-                        preserve_range=True,
-                    )
-                )
+            tilt -= df.loc[idx, "rotation_rad_s"] * dt * 180 / np.pi
+            img_centered = recenter_img(img_cropped, x_diff, y_diff, fill, tilt)
             path_img_out = pathlib.PurePath(path_output, f"{idx:04}.tif")
             iio.imwrite(str(path_img_out), img_centered)
         if idx >= max(df.index):
             break
+
+
+def recenter_img(
+    img: np.ndarray,
+    x_diff: int,
+    y_diff: int,
+    fill: int = 255,
+    tilt: float = 0.0,
+) -> np.ndarray:
+    """Recenter and optionally rotate a single image.
+
+    Args:
+        img (np.ndarray): input image.
+        x_diff (int): x coordinate colony centroid - frame center in pixels.
+        y_diff (int): y coordinate colony centroid - frame center in pixels.
+        fill (int, optional): Color value to fill empty background. Defaults to 255.
+        tilt (float, optional): Tilt angle to rotate image if not 0.. Defaults to 0..
+
+    Returns:
+        np.ndarray: recentered image.
+    """
+    if len(img.shape) > 2:
+        img = img[:, :, 0]
+    frame_l = img.shape[0]
+    frame_w = img.shape[1]
+    if x_diff > 0:
+        x_min_img = x_diff
+        x_max_img = frame_w
+        x_min_blank = 0
+        x_max_blank = frame_w - x_diff
+    else:
+        x_min_img = 0
+        x_max_img = frame_w + x_diff
+        x_min_blank = -x_diff
+        x_max_blank = frame_w
+    if y_diff > 0:
+        y_min_img = y_diff
+        y_max_img = frame_l
+        y_min_blank = 0
+        y_max_blank = frame_l - y_diff
+    else:
+        y_min_img = 0
+        y_max_img = frame_l + y_diff
+        y_min_blank = -y_diff
+        y_max_blank = frame_l
+
+    img_centered = np.uint8(fill) * np.ones([frame_l, frame_w], dtype=np.uint8)
+    img_centered[y_min_blank:y_max_blank, x_min_blank:x_max_blank] = img[
+        y_min_img:y_max_img, x_min_img:x_max_img
+    ]
+
+    if tilt:
+        img_centered = np.uint8(
+            skimage.transform.rotate(
+                img_centered,
+                tilt,
+                mode="constant",
+                cval=fill,
+                preserve_range=True,
+            )
+        )
+    return img_centered
 
 
 if __name__ == "__main__":
@@ -140,7 +166,7 @@ if __name__ == "__main__":
     )
 
     args = parser.parse_args()
-    center_colonies(
+    center_frames(
         args.video_in,
         args.csv_in,
         path_output=args.output,

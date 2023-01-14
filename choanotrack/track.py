@@ -140,11 +140,11 @@ def measure_blob(
     curr_y = colony_entry["centroid-0"]
     colony_entry = colony_entry.rename(dict_property_renames)
     colony_entry = pd.concat(
-            [
-                colony_entry,
-                pd.Series([timestamp, scale], index=["timestamp_s", "scale_um_px"]),
-            ]
-        )
+        [
+            colony_entry,
+            pd.Series([timestamp, scale], index=["timestamp_s", "scale_um_px"]),
+        ]
+    )
     return colony_entry
 
 
@@ -191,8 +191,8 @@ def filter_positions(
     df.minor_axis_length_px = signal.filtfilt(b, a, df.minor_axis_length_px)
 
     df = pixels_to_um(df)
-    df.loc[df.index[1]::, "rotation_rad_s"] = signal.filtfilt(
-        b, a, df.loc[df.index[1]::, "rotation_rad_s"]
+    df.loc[df.index[1] : :, "rotation_rad_s"] = signal.filtfilt(
+        b, a, df.loc[df.index[1] : :, "rotation_rad_s"]
     )
     return df
 
@@ -384,7 +384,7 @@ if __name__ == "__main__":
     else:
         end_frame = args.end
 
-    df = df.loc[args.start: end_frame]
+    df = df.loc[args.start : end_frame]
     if args.filter > 0:
         df = filter_positions(df, args.filter, args.wn)
         df.to_csv(path_out_filt, index_label="frame")
