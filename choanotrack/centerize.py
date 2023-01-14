@@ -23,10 +23,10 @@ def center_colonies(
     Args:
         path_video (str): Path to input video
         path_csv (str): Path to colony data csv
-        path_output (str): Path to output directory for image stack. Defaults to "./output/".
-        bottom_pad (int, optional): Pad pixels in video not part of image. Defaults to 20.
+        path_output (str): Path to output dir for image stack. Defaults to "./output/".
+        bottom_pad (int, optional): Remove bottom pixels. Defaults to 20.
         fill (int, optional): Color value to fill empty background. Defaults to 255.
-        rotate (bool, optional): Rotate image based on colony orientation. Deafults to False.
+        rotate (bool, optional): Rotate image based on orientation. Defaults to False.
     """
     df = pd.read_csv(path_csv, index_col=0)
     reader = iio.get_reader(path_video)
