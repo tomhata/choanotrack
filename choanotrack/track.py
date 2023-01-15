@@ -87,13 +87,15 @@ def measure_all_frames(
     """
     df = pd.DataFrame(columns=list_properties)
 
-    (y_center, x_center) = lv_masks[0].as_masked_array().mask.shape
+    height_mask = lv_masks[0].as_masked_array().mask.shape[0]
+    width_mask = lv_masks[0].as_masked_array().mask.shape[1]
+
     if x == -1:
-        curr_x = round(x_center / 2)
+        curr_x = round(width_mask / 2)
     else:
         curr_x = x
     if y == -1:
-        curr_y = round(y_center / 2)
+        curr_y = round(height_mask / 2)
     else:
         curr_y = y
 
@@ -101,6 +103,8 @@ def measure_all_frames(
         colony_entry = measure_blob(buffer, curr_x, curr_y, min_size)
         colony_entry.name = frame_count
         df = pd.concat([df, colony_entry.to_frame().transpose()])
+        curr_x = colony_entry["centroid_x_px"]
+        curr_y = colony_entry["centroid_y_px"]
     return df
 
 
@@ -114,8 +118,8 @@ def measure_blob(
 
     Args:
         buffer (lvreader.buffer.Buffer): lavision frame buffer from set.
-        curr_x (int):  current x position of colony centroid
-        curr_y (int):  current y position of colony centroid
+        curr_x (int):  current x position of colony centroid in pixels.
+        curr_y (int):  current y position of colony centroid in pixels.
         min_size (int, optional): minimum blob size in pixels. Defaults to 0.
 
     Returns:
@@ -136,8 +140,6 @@ def measure_blob(
         abs(df_temp["dx_px"] ** 2 + df_temp["dy_px"] ** 2) ** 0.5
     )
     colony_entry = df_temp.sort_values("dist_px", ascending=True).iloc[0]
-    curr_x = colony_entry["centroid-1"]
-    curr_y = colony_entry["centroid-0"]
     colony_entry = colony_entry.rename(dict_property_renames)
     colony_entry = pd.concat(
         [

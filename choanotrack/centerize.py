@@ -43,7 +43,7 @@ def center_frames(
     if vertical:
         tilt = -df.loc[df.index[0], "orientation_rad"] * 180 / np.pi  # vertical colony
     else:
-        tilt = 0.  # don't rotate first frame.
+        tilt = 0.0  # don't rotate first frame.
 
     for idx, img in tqdm(enumerate(reader), total=df.shape[0]):
         if idx in df.index:
