@@ -17,6 +17,7 @@ def center_frames(
     bottom_pad: int = 20,
     fill: int = 255,
     rotate: bool = False,
+    vertical: bool = False,
 ):
     """Create an image stack, with each image centered around the colony centroid.
 
@@ -27,6 +28,7 @@ def center_frames(
         bottom_pad (int, optional): Remove bottom pixels. Defaults to 20.
         fill (int, optional): Color value to fill empty background. Defaults to 255.
         rotate (bool, optional): Rotate image based on orientation. Defaults to False.
+        vertical (bool, optional): Rotate colony to be vertical. Defaults to False.
     """
     df = pd.read_csv(path_csv, index_col=0)
     reader = iio.get_reader(path_video)
@@ -38,16 +40,20 @@ def center_frames(
     pathlib.Path(path_output).mkdir(exist_ok=True)
 
     dt = df.loc[df.index[1], "timestamp_s"] - df.loc[df.index[0], "timestamp_s"]
-    tilt = -df.loc[df.index[0], "orientation_rad"] * 180 / np.pi
+    if vertical:
+        tilt = -df.loc[df.index[0], "orientation_rad"] * 180 / np.pi  # vertical colony
+    else:
+        tilt = 0.  # don't rotate first frame.
 
     for idx, img in tqdm(enumerate(reader), total=df.shape[0]):
         if idx in df.index:
+            if rotate:
+                tilt -= df.loc[idx, "rotation_rad_s"] * dt * 180 / np.pi
             img_cropped = img[:(-bottom_pad), :, :]
             centroid_x = int(round(df.loc[idx]["centroid_x_px"]))
             centroid_y = int(round(df.loc[idx]["centroid_y_px"]))
             x_diff = centroid_x - center_x_frame
             y_diff = centroid_y - center_y_frame
-            tilt -= df.loc[idx, "rotation_rad_s"] * dt * 180 / np.pi
             img_centered = recenter_img(img_cropped, x_diff, y_diff, fill, tilt)
             path_img_out = pathlib.PurePath(path_output, f"{idx:04}.tif")
             iio.imwrite(str(path_img_out), img_centered)
@@ -164,6 +170,13 @@ if __name__ == "__main__":
         help="rotate images based on changes in colony orientation if flag is present.",
         required=False,
     )
+    parser.add_argument(
+        "--vertical",
+        "-vt",
+        action="store_true",
+        help="rotate images based on changes in colony orientation if flag is present.",
+        required=False,
+    )
 
     args = parser.parse_args()
     center_frames(
@@ -173,4 +186,5 @@ if __name__ == "__main__":
         bottom_pad=args.bottom_pad,
         fill=args.fill,
         rotate=args.rotate,
+        vertical=args.vertical,
     )
