@@ -21,20 +21,21 @@ def center_set(
     dir_out: str = "./output/",
     min_size: int = 0,
     fill: int = 255,
+    rotate: bool = False,
 ):
-    """_summary_
+    """Create image stack centered around colony from lavision set file.
 
     Args:
-        path_lv (str): _description_
-        curr_x (int): _description_
-        curr_y (int): _description_
-        dir_out (str, optional): _description_. Defaults to "./output/".
-        min_size (int, optional): _description_. Defaults to 0.
-        fill (int, optional): _description_. Defaults to 255.
+        path_lv (str): path to set file
+        curr_x (int): starting x position of colony centroid in pixels.
+        curr_y (int): starting y position of colony centroid in pixels.
+        dir_out (str, optional): output directory. Defaults to "./output/".
+        min_size (int, optional): minimum colony size in pixels squared. Defaults to 0.
+        fill (int, optional): Color value to fill empty background. Defaults to 255.
+        rotate (bool, optional): Rotate image based on orientation. Defaults to False.
     """
     p = pathlib.Path(path_lv)
     base_name_out = p.with_suffix("").parts[-1]
-    dir_out = dir_out + base_name_out
     path_out_csv = pathlib.Path(dir_out, base_name_out + "_colony.csv")
     pathlib.Path(path_out_csv).parents[0].mkdir(parents=True, exist_ok=True)
 
@@ -55,7 +56,8 @@ def center_set(
     dt = df.loc[df.index[1], "timestamp_s"] - df.loc[df.index[0], "timestamp_s"]
 
     for idx, buffer in enumerate(lv_set):
-        tilt -= df.loc[idx, "rotation_rad_s"] * dt * 180 / np.pi
+        if rotate:
+            tilt -= df.loc[idx, "rotation_rad_s"] * dt * 180 / np.pi
         img = buffer[0].as_masked_array().data
         centroid_x = int(round(df.loc[idx]["centroid_x_px"]))
         centroid_y = int(round(df.loc[idx]["centroid_y_px"]))
@@ -116,6 +118,13 @@ if __name__ == "__main__":
         type=int,
         required=False,
     )
+    parser.add_argument(
+        "--rotate",
+        "-r",
+        action="store_true",
+        help="rotate images based on changes in colony orientation if flag is present.",
+        required=False,
+    )
 
     args = parser.parse_args()
     center_set(
@@ -125,4 +134,5 @@ if __name__ == "__main__":
         dir_out=args.output,
         min_size=args.size,
         fill=args.fill,
+        rotate=args.rotate,
     )

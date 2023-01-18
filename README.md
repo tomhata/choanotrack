@@ -114,6 +114,7 @@ optional arguments:
   --y Y, -y Y           initial colony y position (pixels). defaults to -1 (center)
   --size SIZE, -s SIZE  minimum colony size in pixels squared
   --fill FILL, -f FILL  grayscale value to fill background of centered images. Defaults to 255
+  --rotate, -r          rotate images based on changes in colony orientation if flag is present.
 ```
 
 ## Known issues
