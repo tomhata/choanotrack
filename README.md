@@ -77,11 +77,11 @@ properties = [
 ]
 ```
 
-## Centering and unspinning colonies
+## Centering and unspinning videos of colonies
 ```
 python ./choanotrack/centerize.py [-h] [--video_in VIDEO_IN] [--csv_in CSV_IN] [--output OUTPUT] [--bottom_pad BOTTOM_PAD] [--fill FILL] [--rotate ROTATE]
 
-Create new image stack centered on colony
+Create new image stack centered on colony from original video
 
 optional arguments:
   -h, --help            show this help message and exit
@@ -92,10 +92,28 @@ optional arguments:
   --output OUTPUT, -o OUTPUT
                         Path to output directory. Defaults to ./output/
   --bottom_pad BOTTOM_PAD, -b BOTTOM_PAD
-                        number of pad pixels on bottom of video to remove. Defaults to 20
+                        number of pad pixels on bottom of video to remove. Defaults to 0
   --fill FILL, -f FILL  grayscale value to fill background of centered images. Defaults to 255
   --rotate ROTATE, -r ROTATE
                         rotate images based on changes in colony orientation if flag is present
+```
+
+## Centering and unspinning frames pairs of colonies from LaVision set files
+```
+python ./choanotrack/center_img_set.py [-h] [--input INPUT] [--output OUTPUT] [--x X] [--y Y] [--size SIZE] [--fill FILL]
+
+Create new image stack centered on colony and unspun from LaVision set file
+
+optional arguments:
+  -h, --help            show this help message and exit
+  --input INPUT, -i INPUT
+                        input path lavision set file
+  --output OUTPUT, -o OUTPUT
+                        Path to output directory. Defaults to ./output/
+  --x X, -x X           initial colony x position (pixels). defaults to -1 (center)
+  --y Y, -y Y           initial colony y position (pixels). defaults to -1 (center)
+  --size SIZE, -s SIZE  minimum colony size in pixels squared
+  --fill FILL, -f FILL  grayscale value to fill background of centered images. Defaults to 255
 ```
 
 ## Known issues

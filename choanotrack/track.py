@@ -69,7 +69,7 @@ dict_property_renames = {
 
 
 def measure_all_frames(
-    lv_masks: lvreader.client.set.Set,
+    lv_set: lvreader.client.set.Set,
     min_size: int = 100,
     x: int = -1,
     y: int = -1,
@@ -77,7 +77,7 @@ def measure_all_frames(
     """Measure and record colony data for each frame into a pandas dataframe.
 
     Args:
-        lv_masks (lvreader.client.set.Set): set of lavision frame masks.
+        lv_set (lvreader.client.set.Set): set of lavision frame masks.
         min_size (int, optional): minimum blob size in pixels. Defaults to 100.
         x (int, optional): initial x position (pixels). -1=center. Defaults to -1.
         y (int, optional): initial y position (pixels). -1=center. Defaults to -1.
@@ -87,19 +87,19 @@ def measure_all_frames(
     """
     df = pd.DataFrame(columns=list_properties)
 
-    height_mask = lv_masks[0].as_masked_array().mask.shape[0]
-    width_mask = lv_masks[0].as_masked_array().mask.shape[1]
+    height_frame = lv_set[0].as_masked_array().mask.shape[0]
+    width_frame = lv_set[0].as_masked_array().mask.shape[1]
 
     if x == -1:
-        curr_x = round(width_mask / 2)
+        curr_x = round(width_frame / 2)
     else:
         curr_x = x
     if y == -1:
-        curr_y = round(height_mask / 2)
+        curr_y = round(height_frame / 2)
     else:
         curr_y = y
 
-    for frame_count, buffer in tqdm(enumerate(lv_masks), total=len(lv_masks)):
+    for frame_count, buffer in tqdm(enumerate(lv_set), total=len(lv_set)):
         colony_entry = measure_blob(buffer, curr_x, curr_y, min_size)
         colony_entry.name = frame_count
         df = pd.concat([df, colony_entry.to_frame().transpose()])
@@ -251,10 +251,13 @@ def pixels_to_um(df: pd.DataFrame) -> pd.DataFrame:
                 )
                 ** 0.5
             )
-            df.at[index, "velocity_angle_rad"] = np.arctan2(
-                np.float64(df.velocity_y_um_s[index] / df.velocity_mag_um_s[index]),
-                np.float64(df.velocity_x_um_s[index] / df.velocity_mag_um_s[index]),
-            )
+            if df.velocity_mag_um_s[index]:
+                df.at[index, "velocity_angle_rad"] = np.arctan2(
+                    np.float64(df.velocity_y_um_s[index] / df.velocity_mag_um_s[index]),
+                    np.float64(df.velocity_x_um_s[index] / df.velocity_mag_um_s[index]),
+                )
+            else:
+                df.at[index, "velocity_angle_rad"] = 0
 
         last_timestamp = row.timestamp_s
         last_y_um = centroid_y_um
@@ -375,8 +378,8 @@ if __name__ == "__main__":
     )
     path_log = pathlib.PurePath(dir_out, "choanotrack_log.json")
 
-    lv_masks = lvreader.read_set(args.input)
-    df = measure_all_frames(lv_masks, min_size=args.min_size, x=args.x, y=args.y)
+    lv_set = lvreader.read_set(args.input)
+    df = measure_all_frames(lv_set, min_size=args.min_size, x=args.x, y=args.y)
     df = pixels_to_um(df)
     df.to_csv(path_out_raw, index_label="frame")
     print(f"Output raw file created: {path_out_filt}")

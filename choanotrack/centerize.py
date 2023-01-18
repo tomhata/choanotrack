@@ -14,7 +14,7 @@ def center_frames(
     path_video: str,
     path_csv: str,
     path_output: str = "./output/",
-    bottom_pad: int = 20,
+    bottom_pad: int = 0,
     fill: int = 255,
     rotate: bool = False,
     vertical: bool = False,
@@ -25,7 +25,7 @@ def center_frames(
         path_video (str): Path to input video
         path_csv (str): Path to colony data csv
         path_output (str): Path to output dir for image stack. Defaults to "./output/".
-        bottom_pad (int, optional): Remove bottom pixels. Defaults to 20.
+        bottom_pad (int, optional): Remove bottom pixels. Defaults to 0.
         fill (int, optional): Color value to fill empty background. Defaults to 255.
         rotate (bool, optional): Rotate image based on orientation. Defaults to False.
         vertical (bool, optional): Rotate colony to be vertical. Defaults to False.
@@ -125,7 +125,7 @@ def recenter_img(
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
-        description="Create new image stack centered on colony"
+        description="Create new image stack centered on colony from original video"
     )
     parser.add_argument(
         "--video_in",
@@ -150,8 +150,8 @@ if __name__ == "__main__":
     parser.add_argument(
         "--bottom_pad",
         "-b",
-        default=20,
-        help="number of pad pixels on bottom of video to remove. Defaults to 20",
+        default=0,
+        help="number of pad pixels on bottom of video to remove. Defaults to 0",
         type=int,
         required=False,
     )
